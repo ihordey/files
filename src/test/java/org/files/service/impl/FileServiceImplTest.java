@@ -1,15 +1,26 @@
 package org.files.service.impl;
 
+import org.files.model.Node;
+import org.files.model.structure.Resource;
 import org.files.service.FileService;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 
 public class FileServiceImplTest {
 
     private static final ClassPathResource IMAGE_RESOURCE = new ClassPathResource("files/image.jpg");
+    private static final ClassPathResource FOLDER_RESOURCE = new ClassPathResource("files");
     private final FileService fileService = new FileServiceImpl();
 
     @Test
@@ -33,4 +44,14 @@ public class FileServiceImplTest {
         assertThat(fileService.sizes(IMAGE_RESOURCE.getFile()), is(212755L));
     }
 
+    @Test
+    public void readResource() throws IOException {
+        Collection<File> resources = fileService.read(FOLDER_RESOURCE.getFile().getAbsolutePath());
+        assertThat(resources.size(), is(9));
+        Map<Boolean, List<File>> dirFileMap = resources.stream()
+                .collect(Collectors.groupingBy(File::isDirectory));
+        assertThat("incorrect directory count", dirFileMap.get(true).size(), is(3));
+        assertThat("incorrect folder count", dirFileMap.get(false).size(), is(6));
+
+    }
 }
